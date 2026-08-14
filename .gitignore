@@ -1,0 +1,26 @@
+# Clés et variables d'environnement
+.env
+.env.local
+.env.*
+
+# Environnement virtuel Python
+.venv/
+env/
+venv/
+ENV/
+
+# Python cache & compilés
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Fichiers volumineux (> 50 Mo) à exclure de Git (GitHub bloque à 100 Mo)
+dataset/dataset.csv
+dataset/processed_train.csv
+dataset/processed_test.csv
+
+# Matplotlib & OS cache
+.matplotlib/
+.ds_store
+.DS_Store
