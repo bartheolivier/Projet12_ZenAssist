@@ -1,7 +1,8 @@
-# Clés et variables d'environnement
+# Clés et variables d'environnement (Sécurité)
 .env
 .env.local
 .env.*
+*.env
 
 # Environnement virtuel Python
 .venv/
@@ -20,7 +21,26 @@ dataset/dataset.csv
 dataset/processed_train.csv
 dataset/processed_test.csv
 
-# Matplotlib & OS cache
+# Node.js & Next.js
+**/node_modules/
+node_modules/
+**/.next/
+.next/
+out/
+build/
+dist/
+
+# Base de données PostgreSQL locale & logs
+**/pgdata/
+pgdata/
+*.log
+**/*.log
+
+# Version alternative non utilisée
+zenassist-app/typescript/
+
+# OS cache
 .matplotlib/
 .ds_store
 .DS_Store
+Thumbs.db
