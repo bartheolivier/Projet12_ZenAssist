@@ -1,4 +1,4 @@
-// Removed Claim type import as it's not needed in JavaScript
+// API Client pour ZenAssist (Support Double Moteur : ML FastAPI & LLM Gemini)
 
 const BASE_URL = '/api/claims';
 
@@ -30,7 +30,25 @@ export async function updateClaimTag(claimId, tag) {
   }
 }
 
-export async function autoTagClaim(claimId) {
+// 1. Approche Machine Learning (Étape 3 - Route FastAPI)
+export async function tagClaimWithML(claimId) {
+  const response = await fetch(`${BASE_URL}/${claimId}/auto-tag-ml`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
+
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}));
+    throw new Error(err.error || 'Failed to auto-tag claim with ML model');
+  }
+
+  return response.json();
+}
+
+// 2. Approche LLM (Phase 2 - Route Gemini)
+export async function tagClaimWithLLM(claimId) {
   const response = await fetch(`${BASE_URL}/${claimId}/auto-tag`, {
     method: 'POST',
     headers: {
@@ -39,9 +57,12 @@ export async function autoTagClaim(claimId) {
   });
 
   if (!response.ok) {
-    throw new Error('Failed to auto-tag claim with LLM');
+    const err = await response.json().catch(() => ({}));
+    throw new Error(err.error || 'Failed to auto-tag claim with LLM');
   }
 
   return response.json();
 }
 
+// Alias par défaut (pointe vers le Machine Learning pour la Phase 3)
+export const autoTagClaim = tagClaimWithML;

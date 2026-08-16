@@ -4,18 +4,22 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 import styles from './TagSelector.module.css';
 import { ALLOWED_TAGS } from '@/constants/tags.js';
-import { updateClaimTag, autoTagClaim } from '@/api-client.js';
+import { updateClaimTag, tagClaimWithML, tagClaimWithLLM } from '@/api-client.js';
 
 export default function TagSelector({ claim, onTagUpdate }) {
     const [isUpdating, setIsUpdating] = useState(false);
-    const [isAutoTagging, setIsAutoTagging] = useState(false);
+    const [isMLTagging, setIsMLTagging] = useState(false);
+    const [isLLMTagging, setIsLLMTagging] = useState(false);
+    const [lastMeta, setLastMeta] = useState(null);
 
+    // 1. Mise à jour manuelle
     const handleTagSelect = async (tag) => {
         if (!claim) return;
 
         setIsUpdating(true);
         try {
             await updateClaimTag(claim.id, tag);
+            setLastMeta({ engine: 'Manuel', latency: '-' });
             toast.info(`Catégorie manuelle assignée : ${tag}`);
             onTagUpdate(claim.id, tag);
         } catch (error) {
@@ -26,26 +30,60 @@ export default function TagSelector({ claim, onTagUpdate }) {
         }
     };
 
-    const handleAutoTag = async () => {
-        if (!claim || isAutoTagging) return;
+    // 2. Classification Machine Learning (FastAPI) - Étape 3
+    const handleMLAutoTag = async () => {
+        if (!claim || isMLTagging || isLLMTagging) return;
 
-        setIsAutoTagging(true);
+        setIsMLTagging(true);
         try {
-            const result = await autoTagClaim(claim.id);
+            const result = await tagClaimWithML(claim.id);
             if (result && result.tag) {
-                toast.success(`Réclamation #${claim.id} classée !`, {
-                    description: `Catégorie attribuée : ${result.tag}`,
-                    duration: 4000,
+                setLastMeta({
+                    engine: 'Machine Learning (FastAPI)',
+                    latency: `${result.inferenceLatencyMs} ms`,
+                    confidence: `${(result.confidence * 100).toFixed(1)}%`,
+                });
+                toast.success(`⚡ Réclamation #${claim.id} classée par Machine Learning !`, {
+                    description: `Catégorie : ${result.tag} | Latence : ${result.inferenceLatencyMs} ms | Confiance : ${(result.confidence * 100).toFixed(1)}%`,
+                    duration: 4500,
+                });
+                onTagUpdate(claim.id, result.tag);
+            }
+        } catch (error) {
+            console.error('Error auto-tagging claim with ML:', error);
+            toast.error(`Erreur ML sur la réclamation #${claim.id}`, {
+                description: error.message || 'Assurez-vous que le serveur FastAPI (port 8000) est bien lancé.',
+            });
+        } finally {
+            setIsMLTagging(false);
+        }
+    };
+
+    // 3. Classification LLM (Google Gemini) - Phase 2
+    const handleLLMAutoTag = async () => {
+        if (!claim || isMLTagging || isLLMTagging) return;
+
+        setIsLLMTagging(true);
+        try {
+            const result = await tagClaimWithLLM(claim.id);
+            if (result && result.tag) {
+                setLastMeta({
+                    engine: 'LLM (Google Gemini)',
+                    latency: '~450 ms',
+                });
+                toast.success(`✨ Réclamation #${claim.id} classée par Gemini LLM !`, {
+                    description: `Catégorie : ${result.tag}`,
+                    duration: 4500,
                 });
                 onTagUpdate(claim.id, result.tag);
             }
         } catch (error) {
             console.error('Error auto-tagging claim with LLM:', error);
-            toast.error(`Erreur sur la réclamation #${claim.id}`, {
-                description: error.message || 'Impossible de classifier cette réclamation.',
+            toast.error(`Erreur LLM sur la réclamation #${claim.id}`, {
+                description: error.message || 'Impossible de classifier avec le LLM.',
             });
         } finally {
-            setIsAutoTagging(false);
+            setIsLLMTagging(false);
         }
     };
 
@@ -72,14 +110,14 @@ export default function TagSelector({ claim, onTagUpdate }) {
                 </div>
 
                 <div className={styles.tagSection}>
-                    <h4>Assign tag</h4>
+                    <h4>Assign tag (Manual)</h4>
 
                     <div className={styles.tagSelector}>
                         <select
                             className={styles.select}
                             value={claim.tag ?? ''}
                             onChange={(e) => handleTagSelect(e.target.value)}
-                            disabled={isUpdating || isAutoTagging}
+                            disabled={isUpdating || isMLTagging || isLLMTagging}
                         >
                             <option value="" disabled>
                                 Select a tag
@@ -116,23 +154,54 @@ export default function TagSelector({ claim, onTagUpdate }) {
                     </div>
 
                     <div className={styles.aiSection}>
-                        <button
-                            className={styles.autoTagAiButton}
-                            onClick={handleAutoTag}
-                            disabled={isUpdating || isAutoTagging}
-                            aria-label="Auto-tag with Gemini AI"
-                        >
-                            {isAutoTagging ? (
-                                <>
-                                    <span className={styles.spinner}></span>
-                                    <span>Classification IA en cours...</span>
-                                </>
-                            ) : (
-                                <>
-                                    <span>✨ Classifier automatiquement (Gemini LLM)</span>
-                                </>
-                            )}
-                        </button>
+                        <h4>AI Auto-Tagging Engines</h4>
+                        <div className={styles.aiButtons}>
+                            {/* Bouton ML (Étape 3) */}
+                            <button
+                                className={styles.autoTagMlButton}
+                                onClick={handleMLAutoTag}
+                                disabled={isUpdating || isMLTagging || isLLMTagging}
+                                aria-label="Auto-tag with Machine Learning"
+                            >
+                                {isMLTagging ? (
+                                    <>
+                                        <span className={styles.spinner}></span>
+                                        <span>Inférence ML en cours...</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <span>⚡ Classifier avec Modèle ML (FastAPI)</span>
+                                    </>
+                                )}
+                            </button>
+
+                            {/* Bouton LLM (Phase 2) */}
+                            <button
+                                className={styles.autoTagLlmButton}
+                                onClick={handleLLMAutoTag}
+                                disabled={isUpdating || isMLTagging || isLLMTagging}
+                                aria-label="Auto-tag with Gemini LLM"
+                            >
+                                {isLLMTagging ? (
+                                    <>
+                                        <span className={styles.spinner}></span>
+                                        <span>Inférence LLM en cours...</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <span>✨ Classifier avec Gemini LLM</span>
+                                    </>
+                                )}
+                            </button>
+                        </div>
+
+                        {lastMeta && (
+                            <div className={styles.metaBox}>
+                                <div><strong>Moteur :</strong> {lastMeta.engine}</div>
+                                <div><strong>Latence :</strong> {lastMeta.latency}</div>
+                                {lastMeta.confidence && <div><strong>Confiance :</strong> {lastMeta.confidence}</div>}
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>
