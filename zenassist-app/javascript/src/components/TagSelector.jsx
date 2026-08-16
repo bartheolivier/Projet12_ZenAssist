@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { toast } from 'sonner';
 import styles from './TagSelector.module.css';
 import { ALLOWED_TAGS } from '@/constants/tags.js';
 import { updateClaimTag, autoTagClaim } from '@/api-client.js';
@@ -15,9 +16,11 @@ export default function TagSelector({ claim, onTagUpdate }) {
         setIsUpdating(true);
         try {
             await updateClaimTag(claim.id, tag);
+            toast.info(`Catégorie manuelle assignée : ${tag}`);
             onTagUpdate(claim.id, tag);
         } catch (error) {
             console.error('Error updating tag:', error);
+            toast.error('Erreur lors de la mise à jour du tag');
         } finally {
             setIsUpdating(false);
         }
@@ -30,10 +33,17 @@ export default function TagSelector({ claim, onTagUpdate }) {
         try {
             const result = await autoTagClaim(claim.id);
             if (result && result.tag) {
+                toast.success(`Réclamation #${claim.id} classée !`, {
+                    description: `Catégorie attribuée : ${result.tag}`,
+                    duration: 4000,
+                });
                 onTagUpdate(claim.id, result.tag);
             }
         } catch (error) {
             console.error('Error auto-tagging claim with LLM:', error);
+            toast.error(`Erreur sur la réclamation #${claim.id}`, {
+                description: error.message || 'Impossible de classifier cette réclamation.',
+            });
         } finally {
             setIsAutoTagging(false);
         }

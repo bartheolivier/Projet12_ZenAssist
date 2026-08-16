@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { toast } from 'sonner';
 import styles from './Claim.module.css';
 import { autoTagClaim } from '@/api-client.js';
 
@@ -22,11 +23,24 @@ export default function ClaimComponent({ claim, isSelected, onClick, onTagClick,
         setIsAutoTagging(true);
         try {
             const result = await autoTagClaim(claim.id);
-            if (result && result.tag && onTagUpdate) {
-                onTagUpdate(claim.id, result.tag);
+            if (result && result.tag) {
+                toast.success(`Réclamation #${claim.id} classée !`, {
+                    description: `Catégorie attribuée : ${result.tag}`,
+                    duration: 4000,
+                    action: onTagClick ? {
+                        label: 'Voir la boîte',
+                        onClick: () => onTagClick(result.tag),
+                    } : undefined,
+                });
+                if (onTagUpdate) {
+                    onTagUpdate(claim.id, result.tag);
+                }
             }
         } catch (error) {
             console.error('Failed to auto-tag claim with LLM:', error);
+            toast.error(`Erreur sur la réclamation #${claim.id}`, {
+                description: error.message || 'Impossible de classifier cette réclamation.',
+            });
         } finally {
             setIsAutoTagging(false);
         }
