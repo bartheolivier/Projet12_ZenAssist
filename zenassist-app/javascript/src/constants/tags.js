@@ -1,14 +1,14 @@
+// Taxonomie officielle et consolidée des 10 catégories de réclamations ZenAssist (Phase 1, 2 et 3)
+
 export const ALLOWED_TAGS = [
+  'Credit reporting',
+  'Credit card / Prepaid card',
+  'Bank account / Savings',
   'Debt collection',
-  'Consumer Loan',
-  'Credit card or prepaid card',
   'Mortgage',
-  'Vehicle loan or lease',
   'Student loan',
-  'Payday loan, title loan, or personal loan',
-  'Checking or savings account',
-  'Bank account or service',
-  'Money transfer, virtual currency, or money service',
-  'Money transfers',
-  'Other financial services'
+  'Payday & Personal loan',
+  'Money transfer / Crypto',
+  'Vehicle loan / Lease',
+  'Other financial service'
 ];
