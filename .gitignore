@@ -20,6 +20,8 @@ __pycache__/
 dataset/dataset.csv
 dataset/processed_train.csv
 dataset/processed_test.csv
+release_artifacts/
+
 
 # Node.js & Next.js
 **/node_modules/
