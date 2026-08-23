@@ -22,7 +22,6 @@ dataset/processed_train.csv
 dataset/processed_test.csv
 release_artifacts/
 
-
 # Node.js & Next.js
 **/node_modules/
 node_modules/
@@ -32,11 +31,16 @@ out/
 build/
 dist/
 
-# Base de données PostgreSQL locale & logs
+# Base de données PostgreSQL locale, PIDs et logs d'exécution
 **/pgdata/
 pgdata/
 *.log
 **/*.log
+*.pid
+**/*.pid
+zenassist-app/fastapi.pid
+zenassist-app/fastapi.log
+zenassist-app/pg.log
 
 # Version alternative non utilisée
 zenassist-app/typescript/
