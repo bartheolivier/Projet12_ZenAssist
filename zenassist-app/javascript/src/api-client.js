@@ -7,7 +7,7 @@ export async function fetchClaims(tag) {
     ? `${BASE_URL}?tag=${encodeURIComponent(tag)}`
     : BASE_URL;
 
-  const response = await fetch(url);
+  const response = await fetch(url, { cache: 'no-store' });
 
   if (!response.ok) {
     throw new Error('Failed to fetch claims', { cause: response });
