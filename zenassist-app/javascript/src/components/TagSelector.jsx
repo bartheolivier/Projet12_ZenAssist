@@ -12,19 +12,27 @@ export default function TagSelector({ claim, onTagUpdate }) {
     const [isLLMTagging, setIsLLMTagging] = useState(false);
     const [lastMeta, setLastMeta] = useState(null);
 
-    // 1. Mise à jour manuelle
+    // 1. Assignation ou modification manuelle du tag
     const handleTagSelect = async (tag) => {
-        if (!claim) return;
+        if (!claim || isUpdating) return;
 
         setIsUpdating(true);
         try {
             await updateClaimTag(claim.id, tag);
-            setLastMeta({ engine: 'Manuel', latency: '-' });
-            toast.info(`Catégorie manuelle assignée : ${tag}`);
+            setLastMeta({ engine: 'Manuel (Humain)', latency: '0 ms' });
+            if (tag) {
+                toast.success(`🏷️ Catégorie manuelle assignée !`, {
+                    description: `Réclamation #${claim.id} -> ${tag}`,
+                });
+            } else {
+                toast.info(`🔄 Réclamation #${claim.id} remise à l'état non classé (Untagged)`);
+            }
             onTagUpdate(claim.id, tag);
         } catch (error) {
             console.error('Error updating tag:', error);
-            toast.error('Erreur lors de la mise à jour du tag');
+            toast.error('Erreur lors de la mise à jour du tag', {
+                description: error.message || 'Impossible de mettre à jour le tag.'
+            });
         } finally {
             setIsUpdating(false);
         }
@@ -32,7 +40,7 @@ export default function TagSelector({ claim, onTagUpdate }) {
 
     // 2. Classification Machine Learning (FastAPI) - Étape 3
     const handleMLAutoTag = async () => {
-        if (!claim || isMLTagging || isLLMTagging) return;
+        if (!claim || isMLTagging || isLLMTagging || isUpdating) return;
 
         setIsMLTagging(true);
         try {
@@ -61,7 +69,7 @@ export default function TagSelector({ claim, onTagUpdate }) {
 
     // 3. Classification LLM (Google Gemini) - Phase 2
     const handleLLMAutoTag = async () => {
-        if (!claim || isMLTagging || isLLMTagging) return;
+        if (!claim || isMLTagging || isLLMTagging || isUpdating) return;
 
         setIsLLMTagging(true);
         try {
@@ -91,7 +99,9 @@ export default function TagSelector({ claim, onTagUpdate }) {
         return (
             <div className={styles.container}>
                 <div className={styles.placeholder}>
-                    <h3>Select a claim to assign tags</h3>
+                    <div className={styles.placeholderIcon}>👈</div>
+                    <h3>Sélectionnez une réclamation</h3>
+                    <p>Cliquez sur une réclamation dans la liste pour l'étiqueter manuellement ou avec l'IA.</p>
                 </div>
             </div>
         );
@@ -100,27 +110,48 @@ export default function TagSelector({ claim, onTagUpdate }) {
     return (
         <div className={styles.container}>
             <div className={styles.header}>
-                <h2>Claim #{claim.id}</h2>
+                <h2>Réclamation #{claim.id}</h2>
+                {claim.tag && (
+                    <span className={styles.currentTagBadge}>
+                        {claim.tag}
+                    </span>
+                )}
             </div>
 
             <div className={styles.content}>
+                {/* Contenu du texte de la réclamation */}
                 <div className={styles.claimContent}>
-                    <h3>Content</h3>
+                    <h4>Texte de la réclamation</h4>
                     <p>{claim.content}</p>
                 </div>
 
-                <div className={styles.tagSection}>
-                    <h4>Assign tag (Manual)</h4>
+                {/* SECTION 1 : ASSIGNATION MANUELLE */}
+                <div className={styles.manualSection}>
+                    <div className={styles.sectionHeader}>
+                        <h4>🏷️ Assignation Manuelle</h4>
+                        {claim.tag && (
+                            <button
+                                className={styles.untagBtn}
+                                onClick={() => handleTagSelect(null)}
+                                disabled={isUpdating || isMLTagging || isLLMTagging}
+                                title="Supprimer le tag et remettre dans 'Untagged'"
+                            >
+                                ✕ Retirer le tag
+                            </button>
+                        )}
+                    </div>
 
+                    {/* Menu déroulant classique */}
                     <div className={styles.tagSelector}>
                         <select
                             className={styles.select}
                             value={claim.tag ?? ''}
                             onChange={(e) => handleTagSelect(e.target.value)}
                             disabled={isUpdating || isMLTagging || isLLMTagging}
+                            aria-label="Choisir une catégorie manuellement"
                         >
                             <option value="" disabled>
-                                Select a tag
+                                -- Choisir une catégorie manuellement --
                             </option>
 
                             {ALLOWED_TAGS.map((tag) => (
@@ -129,80 +160,89 @@ export default function TagSelector({ claim, onTagUpdate }) {
                                 </option>
                             ))}
                         </select>
-
-                        {(!claim.tag || claim.tag === '') && (
-                            <svg
-                                className={styles.chevronIcon}
-                                width="12"
-                                height="12"
-                                viewBox="0 0 292.4 292.4"
-                                fill="none"
-                                xmlns="http://www.w3.org/2000/svg"
-                            >
-                                <path
-                                    fill="var(--foreground-muted)"
-                                    d="M287 69.4a17.6 17.6 0 0 0-13-5.4H18.4c-5 0-9.3 1.8-12.9 5.4A17.6 17.6 0 0 0 0 82.2c0 5 1.8 9.3 5.4 12.9l128 127.9c3.6 3.6 7.8 5.4 12.8 5.4s9.2-1.8 12.8-5.4L287 95c3.5-3.5 5.4-7.8 5.4-12.8 0-5-1.9-9.2-5.5-12.8z"
-                                />
-                            </svg>
-                        )}
-
-                        {isUpdating && (
-                            <div className={styles.updating}>
-                                Updating...
-                            </div>
-                        )}
                     </div>
 
-                    <div className={styles.aiSection}>
-                        <h4>AI Auto-Tagging Engines</h4>
-                        <div className={styles.aiButtons}>
-                            {/* Bouton ML (Étape 3) */}
-                            <button
-                                className={styles.autoTagMlButton}
-                                onClick={handleMLAutoTag}
-                                disabled={isUpdating || isMLTagging || isLLMTagging}
-                                aria-label="Auto-tag with Machine Learning"
-                            >
-                                {isMLTagging ? (
-                                    <>
-                                        <span className={styles.spinner}></span>
-                                        <span>Inférence ML en cours...</span>
-                                    </>
-                                ) : (
-                                    <>
-                                        <span>⚡ Classifier avec Modèle ML (FastAPI)</span>
-                                    </>
-                                )}
-                            </button>
-
-                            {/* Bouton LLM (Phase 2) */}
-                            <button
-                                className={styles.autoTagLlmButton}
-                                onClick={handleLLMAutoTag}
-                                disabled={isUpdating || isMLTagging || isLLMTagging}
-                                aria-label="Auto-tag with Gemini LLM"
-                            >
-                                {isLLMTagging ? (
-                                    <>
-                                        <span className={styles.spinner}></span>
-                                        <span>Inférence LLM en cours...</span>
-                                    </>
-                                ) : (
-                                    <>
-                                        <span>✨ Classifier avec Gemini LLM</span>
-                                    </>
-                                )}
-                            </button>
+                    {/* Grille de badges pour sélection rapide en 1 clic */}
+                    <div className={styles.quickTagsContainer}>
+                        <span className={styles.quickTagsLabel}>Sélection rapide en 1 clic :</span>
+                        <div className={styles.quickTagsGrid}>
+                            {ALLOWED_TAGS.map((tag) => {
+                                const isCurrent = claim.tag === tag;
+                                return (
+                                    <button
+                                        key={tag}
+                                        className={`${styles.quickTagPill} ${isCurrent ? styles.activePill : ''}`}
+                                        onClick={() => handleTagSelect(tag)}
+                                        disabled={isUpdating || isMLTagging || isLLMTagging}
+                                        title={`Assigner manuellement '${tag}'`}
+                                    >
+                                        {tag}
+                                    </button>
+                                );
+                            })}
                         </div>
-
-                        {lastMeta && (
-                            <div className={styles.metaBox}>
-                                <div><strong>Moteur :</strong> {lastMeta.engine}</div>
-                                <div><strong>Latence :</strong> {lastMeta.latency}</div>
-                                {lastMeta.confidence && <div><strong>Confiance :</strong> {lastMeta.confidence}</div>}
-                            </div>
-                        )}
                     </div>
+
+                    {isUpdating && (
+                        <div className={styles.updating}>
+                            <span className={styles.spinner}></span>
+                            <span>Mise à jour en base PostgreSQL...</span>
+                        </div>
+                    )}
+                </div>
+
+                {/* SECTION 2 : AUTO-CLASSIFICATION IA */}
+                <div className={styles.aiSection}>
+                    <h4>🤖 Moteurs d'Auto-Classification IA</h4>
+                    <div className={styles.aiButtons}>
+                        {/* Bouton ML (Étape 3 - FastAPI) */}
+                        <button
+                            className={styles.autoTagMlButton}
+                            onClick={handleMLAutoTag}
+                            disabled={isUpdating || isMLTagging || isLLMTagging}
+                            aria-label="Auto-tag with Machine Learning"
+                            title="Prédire avec le modèle Machine Learning (FastAPI, ~2ms)"
+                        >
+                            {isMLTagging ? (
+                                <>
+                                    <span className={styles.spinner}></span>
+                                    <span>Inférence ML en cours...</span>
+                                </>
+                            ) : (
+                                <>
+                                    <span>⚡ Classifier avec Modèle ML (FastAPI)</span>
+                                </>
+                            )}
+                        </button>
+
+                        {/* Bouton LLM (Phase 2 - Gemini) */}
+                        <button
+                            className={styles.autoTagLlmButton}
+                            onClick={handleLLMAutoTag}
+                            disabled={isUpdating || isMLTagging || isLLMTagging}
+                            aria-label="Auto-tag with Gemini LLM"
+                            title="Prédire avec Google Gemini LLM (~450ms)"
+                        >
+                            {isLLMTagging ? (
+                                <>
+                                    <span className={styles.spinner}></span>
+                                    <span>Inférence LLM en cours...</span>
+                                </>
+                            ) : (
+                                <>
+                                    <span>✨ Classifier avec Gemini LLM</span>
+                                </>
+                            )}
+                        </button>
+                    </div>
+
+                    {lastMeta && (
+                        <div className={styles.metaBox}>
+                            <div><strong>Moteur :</strong> {lastMeta.engine}</div>
+                            <div><strong>Latence :</strong> {lastMeta.latency}</div>
+                            {lastMeta.confidence && <div><strong>Confiance :</strong> {lastMeta.confidence}</div>}
+                        </div>
+                    )}
                 </div>
             </div>
         </div>

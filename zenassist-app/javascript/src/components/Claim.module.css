@@ -63,10 +63,16 @@
   margin-top: 4px;
 }
 
-.buttonGroup {
+.taggedRow {
   display: flex;
   align-items: center;
   gap: 8px;
+}
+
+.buttonGroup {
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .tag {
@@ -99,12 +105,46 @@
   font-weight: 700;
 }
 
+/* Bouton Manuel */
+.manualTagBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 9px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--foreground-secondary);
+  background: var(--background-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+.manualTagBtn:hover {
+  background: var(--border-light);
+  color: var(--foreground);
+  border-color: var(--foreground-muted);
+}
+
+.selected .manualTagBtn {
+  background: rgba(255, 255, 255, 0.2);
+  color: #FFFFFF;
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+.selected .manualTagBtn:hover {
+  background: #FFFFFF;
+  color: var(--primary-blue);
+}
+
 /* Bouton 1 : Machine Learning (FastAPI) */
 .autoTagMlBtn {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  padding: 4px 12px;
+  gap: 4px;
+  padding: 4px 10px;
   font-size: 11px;
   font-weight: 700;
   color: #4F46E5;
@@ -133,8 +173,8 @@
 .autoTagLlmBtn {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  padding: 4px 10px;
+  gap: 4px;
+  padding: 4px 9px;
   font-size: 11px;
   font-weight: 600;
   color: #0D9488;

@@ -8,6 +8,7 @@
 
 .placeholder {
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   height: 100%;
@@ -17,96 +18,145 @@
   background: var(--background-secondary);
 }
 
+.placeholderIcon {
+  font-size: 36px;
+  margin-bottom: 12px;
+}
+
 .placeholder h3 {
-  margin: 0;
+  margin: 0 0 8px 0;
   font-size: 16px;
   font-weight: 600;
-  color: var(--foreground-secondary);
-  letter-spacing: 0.3px;
+  color: var(--foreground);
+}
+
+.placeholder p {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--foreground-muted);
+  max-width: 240px;
 }
 
 .header {
   composes: header from '../styles/Header.module.css';
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
 }
 
-.header h3 {
+.header h2 {
   margin: 0;
-  font-size: 20px;
+  font-size: 18px;
   font-weight: 700;
   color: var(--foreground);
-  letter-spacing: -0.3px;
+}
+
+.currentTagBadge {
+  background: var(--primary-blue);
+  color: #FFFFFF;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 12px;
+  letter-spacing: 0.5px;
+  box-shadow: 0 2px 4px rgba(37, 99, 235, 0.2);
 }
 
 .content {
   flex: 1;
-  padding: 24px;
+  padding: 20px;
   overflow-y: auto;
   background: var(--background-secondary);
 }
 
 .claimContent {
-  margin-bottom: 24px;
+  margin-bottom: 20px;
 }
 
 .claimContent h4 {
-  margin: 0 0 12px 0;
+  margin: 0 0 8px 0;
   font-size: 11px;
   font-weight: 700;
   color: var(--foreground-muted);
   text-transform: uppercase;
-  letter-spacing: 1.2px;
+  letter-spacing: 1px;
 }
 
 .claimContent p {
   margin: 0;
-  font-size: 14px;
-  line-height: 1.7;
+  font-size: 13px;
+  line-height: 1.6;
   color: var(--foreground-secondary);
   background: var(--background);
-  padding: 16px;
+  padding: 14px;
   border-radius: var(--radius-md);
   border: 1px solid var(--border-light);
   box-shadow: var(--shadow-sm);
-  letter-spacing: 0.2px;
+  max-height: 180px;
+  overflow-y: auto;
 }
 
-.tagSection h4 {
-  margin: 0 0 12px 0;
-  font-size: 11px;
+/* SECTION 1 : ASSIGNATION MANUELLE */
+.manualSection {
+  margin-bottom: 20px;
+  padding: 16px;
+  background: var(--background);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.sectionHeader h4 {
+  margin: 0;
+  font-size: 12px;
   font-weight: 700;
-  color: var(--foreground-muted);
+  color: var(--foreground);
   text-transform: uppercase;
-  letter-spacing: 1.2px;
+  letter-spacing: 0.8px;
+}
+
+.untagBtn {
+  background: none;
+  border: 1px solid #FCA5A5;
+  color: #DC2626;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.untagBtn:hover:not(:disabled) {
+  background: #FEE2E2;
 }
 
 .tagSelector {
   position: relative;
-  margin-top: 6px;
-  margin-bottom: 20px;
+  margin-bottom: 12px;
 }
 
 .select {
   width: 100%;
-  padding: 10px 36px 10px 14px;
+  padding: 10px 14px;
   border: 1px solid var(--border-color);
   border-radius: var(--radius-md);
-  background: var(--background);
+  background: var(--background-secondary);
   color: var(--foreground);
   font-size: 13px;
   font-family: inherit;
   font-weight: 500;
   transition: all 0.2s ease;
   cursor: pointer;
-  appearance: none;
-}
-
-.chevronIcon {
-  position: absolute;
-  right: 12px;
-  top: 50%;
-  transform: translateY(-50%);
-  pointer-events: none;
-  z-index: 1;
 }
 
 .select:hover {
@@ -119,47 +169,85 @@
   box-shadow: 0 0 0 2px var(--primary-blue-light);
 }
 
-.select:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-  background-color: var(--background-tertiary);
+.quickTagsContainer {
+  margin-top: 10px;
+}
+
+.quickTagsLabel {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--foreground-muted);
+  margin-bottom: 8px;
+}
+
+.quickTagsGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.quickTagPill {
+  background: var(--background-secondary);
+  color: var(--foreground-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 14px;
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-family: inherit;
+}
+
+.quickTagPill:hover:not(:disabled) {
+  background: var(--primary-blue-light, #EFF6FF);
+  color: var(--primary-blue);
+  border-color: var(--primary-blue);
+  transform: translateY(-1px);
+}
+
+.activePill {
+  background: var(--primary-blue) !important;
+  color: #FFFFFF !important;
+  border-color: var(--primary-blue) !important;
+  font-weight: 700;
 }
 
 .updating {
   margin-top: 10px;
   font-size: 12px;
   color: var(--primary-blue);
-  font-weight: 500;
+  font-weight: 600;
   display: flex;
   align-items: center;
   gap: 8px;
 }
 
-.updating::before {
-  content: '';
-  display: inline-block;
-  width: 12px;
-  height: 12px;
-  border: 2px solid var(--primary-blue-light);
-  border-top-color: var(--primary-blue);
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
+/* SECTION 2 : AUTO-TAGGING IA */
+.aiSection {
+  padding: 16px;
+  background: var(--background);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
 }
 
-.aiSection {
-  margin-top: 16px;
-  padding-top: 16px;
-  border-top: 1px solid var(--border-light);
+.aiSection h4 {
+  margin: 0 0 12px 0;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--foreground);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
 }
 
 .aiButtons {
   display: flex;
   flex-direction: column;
   gap: 10px;
-  margin-top: 10px;
 }
 
-/* Bouton 1 : Machine Learning (FastAPI) */
 .autoTagMlButton {
   display: inline-flex;
   align-items: center;
@@ -184,7 +272,6 @@
   transform: translateY(-1px);
 }
 
-/* Bouton 2 : LLM (Gemini) */
 .autoTagLlmButton {
   display: inline-flex;
   align-items: center;
@@ -210,7 +297,9 @@
 }
 
 .autoTagMlButton:disabled,
-.autoTagLlmButton:disabled {
+.autoTagLlmButton:disabled,
+.quickTagPill:disabled,
+.select:disabled {
   opacity: 0.6;
   cursor: not-allowed;
   transform: none;
@@ -218,20 +307,19 @@
 
 .metaBox {
   margin-top: 14px;
-  padding: 12px 14px;
-  background: var(--background);
+  padding: 10px 12px;
+  background: var(--background-secondary);
   border: 1px solid var(--border-light);
   border-radius: var(--radius-md);
   font-size: 12px;
   line-height: 1.6;
   color: var(--foreground-secondary);
-  box-shadow: var(--shadow-sm);
 }
 
 .spinner {
   width: 12px;
   height: 12px;
-  border: 2px solid #FFFFFF;
+  border: 2px solid currentColor;
   border-top-color: transparent;
   border-radius: 50%;
   animation: spin 0.6s linear infinite;

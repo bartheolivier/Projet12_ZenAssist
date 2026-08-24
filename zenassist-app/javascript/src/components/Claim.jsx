@@ -96,23 +96,38 @@ export default function ClaimComponent({ claim, isSelected, onClick, onTagClick,
                 </p>
                 <div className={styles.actionsRow}>
                     {claim.tag ? (
-                        <button
-                            className={styles.tag}
-                            onClick={handleTagClick}
-                            aria-label={`Navigate to ${claim.tag} inbox`}
-                            title={`Go to ${claim.tag} inbox`}
-                        >
-                            {claim.tag}
-                        </button>
+                        <div className={styles.taggedRow}>
+                            <button
+                                className={styles.tag}
+                                onClick={handleTagClick}
+                                aria-label={`Navigate to ${claim.tag} inbox`}
+                                title={`Aller à la boîte ${claim.tag}`}
+                            >
+                                {claim.tag}
+                            </button>
+                        </div>
                     ) : (
                         <div className={styles.buttonGroup}>
-                            {/* Bouton ML (FastAPI - Recommandé Étape 3) */}
+                            {/* Bouton Option 1 : Assignation Manuelle */}
+                            <button
+                                className={styles.manualTagBtn}
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    if (onClick) onClick();
+                                }}
+                                title="Ouvrir le panneau pour choisir manuellement la catégorie"
+                                aria-label="Manual Tagging"
+                            >
+                                <span>🏷️ Manuel</span>
+                            </button>
+
+                            {/* Bouton Option 2 : Machine Learning (FastAPI - Étape 3) */}
                             <button
                                 className={`${styles.autoTagMlBtn} ${isMLTagging ? styles.loading : ''}`}
                                 onClick={handleMLTagClick}
                                 disabled={isMLTagging || isLLMTagging}
                                 aria-label="Auto-tag with Machine Learning"
-                                title="Classifier cette réclamation avec le modèle ML (FastAPI ~2ms)"
+                                title="Classifier avec le modèle ML (FastAPI ~2ms)"
                             >
                                 {isMLTagging ? (
                                     <>
@@ -121,18 +136,18 @@ export default function ClaimComponent({ claim, isSelected, onClick, onTagClick,
                                     </>
                                 ) : (
                                     <>
-                                        <span>⚡ Auto-tag ML</span>
+                                        <span>⚡ ML</span>
                                     </>
                                 )}
                             </button>
 
-                            {/* Bouton LLM (Gemini - Conservé pour comparaison) */}
+                            {/* Bouton Option 3 : LLM (Gemini - Phase 2) */}
                             <button
                                 className={`${styles.autoTagLlmBtn} ${isLLMTagging ? styles.loading : ''}`}
                                 onClick={handleLLMTagClick}
                                 disabled={isMLTagging || isLLMTagging}
                                 aria-label="Auto-tag with Gemini LLM"
-                                title="Classifier cette réclamation avec Google Gemini LLM"
+                                title="Classifier avec Google Gemini LLM"
                             >
                                 {isLLMTagging ? (
                                     <>
