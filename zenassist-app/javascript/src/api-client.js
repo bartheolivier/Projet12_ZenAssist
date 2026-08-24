@@ -26,8 +26,11 @@ export async function updateClaimTag(claimId, tag) {
   });
 
   if (!response.ok) {
-    throw new Error('Failed to update tag');
+    const err = await response.json().catch(() => ({}));
+    throw new Error(err.error || 'Failed to update tag');
   }
+
+  return response.json();
 }
 
 // 1. Approche Machine Learning (Étape 3 - Route FastAPI)
