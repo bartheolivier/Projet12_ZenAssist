@@ -22,6 +22,10 @@ dataset/processed_train.csv
 dataset/processed_test.csv
 release_artifacts/
 
+# Documentation locale (conservée uniquement en local)
+documentation/
+**/documentation/
+
 # Node.js & Next.js
 **/node_modules/
 node_modules/
