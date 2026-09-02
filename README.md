@@ -51,7 +51,7 @@ Projet12_ZenAssist/
 ├── export_model.py                    # Script d'export de model.pkl et metrics.json
 ├── ml_api.py                          # Micro-service d'API REST Python FastAPI (POST /tags)
 ├── generate_diverse_seed.py           # Générateur de 100 réclamations de test équilibrées
-├── presentation_zenassist.pptx        # Support de présentation officiel pour la soutenance (11 slides)
+├── presentation_zenassist.pdf         # Support de présentation
 ├── requirements.txt                   # Dépendances Python du projet
 └── .gitignore                         # Fichiers et dossiers exclus du suivi Git
 ```
