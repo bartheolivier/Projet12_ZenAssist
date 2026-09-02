@@ -68,7 +68,7 @@ Projet12_ZenAssist/
   * *Logistic Regression* (Gagnante) : **85.20% d'Accuracy**, F1 pondéré de **0.8488**, latence de **~0.002 ms**.
   * *SGD Classifier (Linear SVM)* : 84.80% d'Accuracy.
   * *Multinomial Naive Bayes* : 80.90% d'Accuracy.
-* **Support Exécutif** : Création de la présentation PowerPoint officielle [`presentation_zenassist.pptx`](presentation_zenassist.pptx) synthétisant la démarche et les recommandations MLOps.
+* **Support de présentation** : Création de la présentation [`presentation_zenassist.pdf`](presentation_zenassist.pdf) synthétisant la démarche.
 
 ---
 
@@ -181,10 +181,3 @@ Une seule commande démarre simultanément **PostgreSQL (port 5433)**, **FastAPI
   python export_model.py
   ```
 
----
-
-## 👥 Auteur & Licence
-
-* **Projet** : Formation Développeur IA - OpenClassrooms (Projet 12 : ZenAssist)
-* **Auteur** : Olivier Barthe
-* **Licence** : MIT
