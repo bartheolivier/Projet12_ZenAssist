@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { getClaimById, setClaimTag } from '@/database/queries.js';
 
+export const dynamic = 'force-dynamic';
+
 const ML_API_URL = process.env.ML_API_URL || 'http://localhost:8000';
 
 export async function POST(request, { params }) {
@@ -19,15 +21,26 @@ export async function POST(request, { params }) {
 
     // Appel à l'API Python FastAPI (route POST /tags)
     const startTime = performance.now();
-    const mlResponse = await fetch(`${ML_API_URL}/tags`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        user_claim: claim.content,
-      }),
-    });
+    let mlResponse;
+    try {
+      mlResponse = await fetch(`${ML_API_URL}/tags`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          user_claim: claim.content,
+        }),
+      });
+    } catch (fetchErr) {
+      console.error('Impossible de joindre le serveur FastAPI:', fetchErr);
+      return NextResponse.json(
+        {
+          error: `Le serveur FastAPI (port 8000) n'est pas accessible (${fetchErr.message}). Lancez ./zenassist-app/start_app.sh pour démarrer l'API Python.`
+        },
+        { status: 503 }
+      );
+    }
 
     if (!mlResponse.ok) {
       const errData = await mlResponse.json().catch(() => ({}));

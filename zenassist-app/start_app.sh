@@ -24,15 +24,41 @@ if ! /usr/lib/postgresql/16/bin/pg_ctl -D "$PGDATA" status 2>&1 | grep -q "serve
     /usr/lib/postgresql/16/bin/pg_ctl -D "$PGDATA" -o "-p 5433 -k /tmp" -l "$ZEN_DIR/pg.log" start
     sleep 1
 else
-    echo "1. PostgreSQL est déjà en cours d'exécution."
+    echo "1. PostgreSQL est déjà en cours d'exécution sur le port 5433."
 fi
 
 # 3. Démarrage de l'API Python FastAPI (Port 8000)
 echo "2. Démarrage de l'API FastAPI (Modèle ML) sur le port 8000..."
-"$ROOT_DIR/.venv/bin/uvicorn" ml_api:app --host 0.0.0.0 --port 8000 > "$ZEN_DIR/fastapi.log" 2>&1 &
-echo $! > "$ZEN_DIR/fastapi.pid"
-echo "-> API FastAPI lancée (PID: $(cat "$ZEN_DIR/fastapi.pid"))"
-echo "-> Documentation Swagger : http://localhost:8000/docs"
+# Tuer un éventuel ancien processus FastAPI
+if [ -f "$ZEN_DIR/fastapi.pid" ]; then
+    OLD_PID=$(cat "$ZEN_DIR/fastapi.pid")
+    kill "$OLD_PID" 2>/dev/null || true
+    rm -f "$ZEN_DIR/fastapi.pid"
+fi
+
+# Démarrer Uvicorn en se plaçant explicitement à la racine du projet
+(cd "$ROOT_DIR" && "$ROOT_DIR/.venv/bin/uvicorn" --app-dir "$ROOT_DIR" ml_api:app --host 0.0.0.0 --port 8000 > "$ZEN_DIR/fastapi.log" 2>&1) &
+FASTAPI_PID=$!
+echo "$FASTAPI_PID" > "$ZEN_DIR/fastapi.pid"
+
+# Attendre et vérifier la disponibilité de FastAPI
+echo "-> Vérification de l'API FastAPI..."
+READY=false
+for i in {1..10}; do
+    if curl -s http://localhost:8000/health >/dev/null 2>&1; then
+        READY=true
+        break
+    fi
+    sleep 0.5
+done
+
+if [ "$READY" = true ]; then
+    echo "✅ API FastAPI opérationnelle sur http://localhost:8000 (PID: $FASTAPI_PID)"
+    echo "-> Documentation Swagger : http://localhost:8000/docs"
+else
+    echo "❌ Erreur au démarrage de FastAPI. Contenu de fastapi.log :"
+    cat "$ZEN_DIR/fastapi.log"
+fi
 
 # 4. Démarrage de Next.js
 echo "3. Lancement du serveur Next.js sur http://localhost:3000..."
